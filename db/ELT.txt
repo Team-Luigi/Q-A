@@ -1,0 +1,5 @@
+\copy question_list from 'db/questions.csv' delimiter ',' csv header ;
+\copy answer_list from 'db/answers.csv' delimiter ',' csv header ;
+\copy photos from 'db/answers_photos.csv' delimiter ',' csv header ;
+
+\i db/schema.sql;
