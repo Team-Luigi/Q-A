@@ -31,7 +31,7 @@ app.get('/api/product/questions/:product_id', async (req, res) => {
   // const questions = await pool.query('SELECT *, q.body question_body, (SELECT json_object_agg(a.id, row_to_json(a)) FROM (SELECT id, body, date_written AS date, answerer_name, helpful AS helpfulness, (SELECT json_agg(p) FROM (SELECT p.url FROM photos AS p WHERE p.answer_id = answer_list.id) p) photos FROM answer_list WHERE question_id = 1) a) answers FROM question_list AS q WHERE product_id = $1', [id]);
   // res.send(questions.rows);
   const id = req.params.product_id;
-  const questions = await pool.query('SELECT q.id question_id, q.body question_body, q.date_written question_date, q.asker_name, q.helpful question_helpfulness, q.reported, (SELECT json_object_agg(a.id, row_to_json(a)) FROM (SELECT id, body, date_written AS date, answerer_name, helpful AS helpfulness, (SELECT json_agg(p.url) FROM photos AS p WHERE p.answer_id = answer_list.id) photos FROM answer_list WHERE question_id = 1) a) answers FROM question_list AS q WHERE product_id = $1', [id]);
+  const questions = await pool.query('SELECT q.id question_id, q.body question_body, to_timestamp(q.date_written) question_date, q.asker_name, q.helpful question_helpfulness, q.reported, (SELECT json_object_agg(a.id, row_to_json(a)) FROM (SELECT id, body, to_timestamp(date_written) AS date, answerer_name, helpful AS helpfulness, (SELECT json_agg(p.url) FROM photos AS p WHERE p.answer_id = answer_list.id) photos FROM answer_list WHERE question_id = q.id) a) answers FROM question_list AS q WHERE product_id = $1', [id]);
   let results = {
     product_id: id,
     results: questions.rows
@@ -51,6 +51,38 @@ app.get('/api/product/questions/:product_id', async (req, res) => {
 // a.body AS answer_body, a.reported AS a_report, a.helpful AS a_helpful
 
 // SELECT json_build_object('product_id', $1, 'results', json_build_array(q)) results FROM (SELECT question_list.body question_body FROM question_list) q
+
+app.post('/api/product/questions/:product_id', async (req, res) => {
+  // const lastId = await pool.query('SELECT q.id FROM question_list q ORDER BY q.id desc LIMIT 1');
+  // console.log('id', lastId.rows[0].id)
+  // const nextId = await JSON.parse(lastId.rows[0].id) + 1;
+  // console.log(nextId);
+  // const date = new Date().getTime();
+  // console.log(date);
+  try {
+    const lastId = await pool.query('SELECT q.id FROM question_list q ORDER BY q.id desc LIMIT 1');
+    const nextId = await JSON.parse(lastId.rows[0].id) + 1;
+    const date = await new Date().getTime();
+    const id = req.params.product_id;
+    const question = req.body.body;
+    const name = req.body.name;
+    const email = req.body.email;
+    const query = 'INSERT INTO question_list(id, product_id, body, date_written, asker_name, asker_email, reported, helpful) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)';
+    const createQ = await pool.query(query, [nextId, id, question, date, name, email, 0, 0]);
+    // console.log('post test', id, question, name, email);
+    res.sendStatus(201);
+  } catch (err) {
+    console.error(err.message);
+  }
+})
+// id BIGSERIAL,
+//  product_id INTEGER,
+//  body VARCHAR(1000),
+//  date_written BIGINT,
+//  asker_name VARCHAR(50),
+//  asker_email VARCHAR(50),
+//  reported BOOLEAN,
+//  helpful INTEGER
 
 app.listen(PORT, () => {
   console.log('Listening on port', PORT);
