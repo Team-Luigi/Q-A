@@ -75,14 +75,7 @@ app.post('/api/product/questions/:product_id', async (req, res) => {
     console.error(err.message);
   }
 })
-// id BIGSERIAL,
-//  product_id INTEGER,
-//  body VARCHAR(1000),
-//  date_written BIGINT,
-//  asker_name VARCHAR(50),
-//  asker_email VARCHAR(50),
-//  reported BOOLEAN,
-//  helpful INTEGER
+
 
 app.listen(PORT, () => {
   console.log('Listening on port', PORT);
