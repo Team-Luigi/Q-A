@@ -42,6 +42,7 @@ app.get('/api/product/questions/:product_id', async (req, res) => {
   // res.send(questions.rows);
   } catch (err) {
     console.error(err.message);
+    res.sendStatus(418);
   }
 })
 // SELECT * FROM answer_list AS a NATURAL JOIN question_list AS q LIMIT 5
